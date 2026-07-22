@@ -43,9 +43,9 @@ st.markdown(
 with st.sidebar:
     st.title("🎵 도레미 연습")
     st.caption("악보를 보고 소리를 떠올리는 힘을 길러줘요")
-    st.markdown("### 📖 계이름")
-    st.markdown("### 🥁 리듬")
-    st.markdown("### 🎺 연주")
+    st.page_link("pages/1_계이름.py", label="📖 계이름")
+    st.page_link("pages/2_리듬.py", label="🥁 리듬")
+    st.page_link("pages/3_연주.py", label="🎺 연주")
 
 st.markdown(
     """
