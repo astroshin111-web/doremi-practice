@@ -68,7 +68,6 @@ with col1:
     st.markdown(
         """
         <div class="card">
-            <div class="small-title">📖 계이름</div>
             <div style="font-size: 1.15rem; font-weight: 600; margin: 0.35rem 0 0.4rem 0; color: #0f172a;">도·레·미를 익혀요</div>
             <p>음의 이름과 높낮이를 연결해 보고, 악보에서 음을 떠올리는 연습을 해요.</p>
         </div>
