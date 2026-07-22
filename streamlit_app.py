@@ -1,151 +1,108 @@
 import streamlit as st
-import pandas as pd
-import math
 from pathlib import Path
 
-# Set the title and favicon that appear in the Browser's tab bar.
 st.set_page_config(
-    page_title='GDP dashboard',
-    page_icon=':earth_americas:', # This is an emoji shortcode. Could be a URL too.
+    page_title="도레미 연습",
+    page_icon="🎼",
+    layout="wide",
 )
 
-# -----------------------------------------------------------------------------
-# Declare some useful functions.
-
-@st.cache_data
-def get_gdp_data():
-    """Grab GDP data from a CSV file.
-
-    This uses caching to avoid having to read the file every time. If we were
-    reading from an HTTP endpoint instead of a file, it's a good idea to set
-    a maximum age to the cache with the TTL argument: @st.cache_data(ttl='1d')
+st.markdown(
     """
+    <style>
+    .hero-box {
+        background: linear-gradient(135deg, #6c63ff 0%, #38bdf8 100%);
+        padding: 1.8rem;
+        border-radius: 1rem;
+        color: white;
+        margin-bottom: 1rem;
+    }
+    .card {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.9rem;
+        padding: 1rem;
+        height: 100%;
+        color: #334155;
+    }
+    .card p {
+        color: #334155;
+        line-height: 1.6;
+        margin: 0.35rem 0 0 0;
+    }
+    .small-title {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: #475569;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
-    # Instead of a CSV on disk, you could read from an HTTP endpoint here too.
-    DATA_FILENAME = Path(__file__).parent/'data/gdp_data.csv'
-    raw_gdp_df = pd.read_csv(DATA_FILENAME)
+with st.sidebar:
+    st.title("🎵 도레미 연습")
+    st.caption("악보를 보고 소리를 떠올리는 힘을 길러줘요")
+    st.markdown("### 📖 계이름")
+    st.markdown("### 🥁 리듬")
+    st.markdown("### 🎺 연주")
 
-    MIN_YEAR = 1960
-    MAX_YEAR = 2022
+st.markdown(
+    """
+    <div class="hero-box">
+        <h1>음악이 처음이어도 괜찮아요</h1>
+        <p>악보를 봐도 음이 바로 떠오르지 않아도 괜찮아요. 천천히 따라 하며 자신감을 키워봐요.</p>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
 
-    # The data above has columns like:
-    # - Country Name
-    # - Country Code
-    # - [Stuff I don't care about]
-    # - GDP for 1960
-    # - GDP for 1961
-    # - GDP for 1962
-    # - ...
-    # - GDP for 2022
-    #
-    # ...but I want this instead:
-    # - Country Name
-    # - Country Code
-    # - Year
-    # - GDP
-    #
-    # So let's pivot all those year-columns into two: Year and GDP
-    gdp_df = raw_gdp_df.melt(
-        ['Country Code'],
-        [str(x) for x in range(MIN_YEAR, MAX_YEAR + 1)],
-        'Year',
-        'GDP',
+st.success("오늘의 목표: 악보를 보고 음을 떠올리고, 직접 연주해 보며 맞는지 틀리는지 확인해요.")
+st.write("이 앱은 악보를 읽는 것이 익숙하지 않은 중학생도 재미있게 연습할 수 있도록 만들었습니다. 작은 성공을 반복하면 음감과 독보 능력이 함께 자라나요.")
+
+st.subheader("이 앱에서 무엇을 할 수 있나요?", divider="gray")
+
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    st.markdown(
+        """
+        <div class="card">
+            <div class="small-title">📖 계이름</div>
+            <div style="font-size: 1.15rem; font-weight: 600; margin: 0.35rem 0 0.4rem 0; color: #0f172a;">도·레·미를 익혀요</div>
+            <p>음의 이름과 높낮이를 연결해 보고, 악보에서 음을 떠올리는 연습을 해요.</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
 
-    # Convert years from string to integers
-    gdp_df['Year'] = pd.to_numeric(gdp_df['Year'])
+with col2:
+    st.markdown(
+        """
+        <div class="card">
+            <div class="small-title">🥁 리듬</div>
+            <div style="font-size: 1.15rem; font-weight: 600; margin: 0.35rem 0 0.4rem 0; color: #0f172a;">박자를 따라가요</div>
+            <p>짧게, 길게, 쉬는 박자를 익히며 리듬 감각을 키워요.</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
-    return gdp_df
+with col3:
+    st.markdown(
+        """
+        <div class="card">
+            <div class="small-title">🎺 연주</div>
+            <div style="font-size: 1.15rem; font-weight: 600; margin: 0.35rem 0 0.4rem 0; color: #0f172a;">직접 소리를 내요</div>
+            <p>보고 듣고 따라 하며, 내 연주가 맞는지 바로 확인해요.</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
-gdp_df = get_gdp_data()
+st.subheader("오늘의 연습 루틴", divider="gray")
+st.markdown("1. 먼저 계이름으로 음의 이름을 익혀요.")
+st.markdown("2. 그다음 리듬으로 박자를 따라 해요.")
+st.markdown("3. 마지막으로 연주 페이지에서 직접 해 보며 확인해요.")
 
-# -----------------------------------------------------------------------------
-# Draw the actual page
-
-# Set the title that appears at the top of the page.
-'''
-# :earth_americas: GDP dashboard
-
-Browse GDP data from the [World Bank Open Data](https://data.worldbank.org/) website. As you'll
-notice, the data only goes to 2022 right now, and datapoints for certain years are often missing.
-But it's otherwise a great (and did I mention _free_?) source of data.
-'''
-
-# Add some spacing
-''
-''
-
-min_value = gdp_df['Year'].min()
-max_value = gdp_df['Year'].max()
-
-from_year, to_year = st.slider(
-    'Which years are you interested in?',
-    min_value=min_value,
-    max_value=max_value,
-    value=[min_value, max_value])
-
-countries = gdp_df['Country Code'].unique()
-
-if not len(countries):
-    st.warning("Select at least one country")
-
-selected_countries = st.multiselect(
-    'Which countries would you like to view?',
-    countries,
-    ['DEU', 'FRA', 'GBR', 'BRA', 'MEX', 'JPN'])
-
-''
-''
-''
-
-# Filter the data
-filtered_gdp_df = gdp_df[
-    (gdp_df['Country Code'].isin(selected_countries))
-    & (gdp_df['Year'] <= to_year)
-    & (from_year <= gdp_df['Year'])
-]
-
-st.header('GDP over time', divider='gray')
-
-''
-
-st.line_chart(
-    filtered_gdp_df,
-    x='Year',
-    y='GDP',
-    color='Country Code',
-)
-
-''
-''
-
-
-first_year = gdp_df[gdp_df['Year'] == from_year]
-last_year = gdp_df[gdp_df['Year'] == to_year]
-
-st.header(f'GDP in {to_year}', divider='gray')
-
-''
-
-cols = st.columns(4)
-
-for i, country in enumerate(selected_countries):
-    col = cols[i % len(cols)]
-
-    with col:
-        first_gdp = first_year[first_year['Country Code'] == country]['GDP'].iat[0] / 1000000000
-        last_gdp = last_year[last_year['Country Code'] == country]['GDP'].iat[0] / 1000000000
-
-        if math.isnan(first_gdp):
-            growth = 'n/a'
-            delta_color = 'off'
-        else:
-            growth = f'{last_gdp / first_gdp:,.2f}x'
-            delta_color = 'normal'
-
-        st.metric(
-            label=f'{country} GDP',
-            value=f'{last_gdp:,.0f}B',
-            delta=growth,
-            delta_color=delta_color
-        )
+st.caption("작은 성공이 쌓이면, 음악을 더 자신 있게 만날 수 있어요.")
