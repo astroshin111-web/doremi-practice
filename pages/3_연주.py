@@ -12,6 +12,13 @@ questions = [
     {"label": "문제 4", "answer": ["도", "미", "솔", "도"], "positions": [2, 0, 2, 4], "hint": "도에서 시작해 위로 올라가 다시 도로 돌아옵니다."},
 ]
 
+# 높은음자리표 기준: 가장 상단 칸(pos=3)이 "미"
+NOTE_SCALE = ["도", "레", "미", "파", "솔", "라", "시"]
+
+
+def position_to_note(pos):
+    return NOTE_SCALE[(pos - 1) % 7]
+
 if "index" not in st.session_state:
     st.session_state.index = 0
 
@@ -27,9 +34,20 @@ def reset_round():
     st.session_state.feedback = None
 
 
+def remove_last_note():
+    if st.session_state.played_notes:
+        st.session_state.played_notes.pop()
+    st.session_state.feedback = None
+
+
+def clear_played_notes():
+    st.session_state.played_notes = []
+    st.session_state.feedback = None
+
+
 def render_staff(positions):
     staff_lines = [30, 50, 70, 90, 110]
-    note_x_positions = [90, 180, 270, 360]
+    note_x_positions = [130, 205, 280, 355]
     svg_parts = [
         '<svg width="430" height="140" viewBox="0 0 430 140" xmlns="http://www.w3.org/2000/svg">',
         '<rect x="0" y="0" width="430" height="140" rx="12" fill="#fffdf8" stroke="#e5e7eb" />',
@@ -37,6 +55,20 @@ def render_staff(positions):
 
     for y in staff_lines:
         svg_parts.append(f'<line x1="40" y1="{y}" x2="390" y2="{y}" stroke="#111827" stroke-width="1.5" />')
+
+    # 높은음자리표(G clef)를 단순화한 벡터 형태로 추가
+    svg_parts.append(
+        '<path d="M78 28 '
+        'C66 30, 60 42, 65 52 '
+        'C71 65, 88 66, 92 54 '
+        'C96 41, 81 36, 73 46 '
+        'C66 55, 69 71, 82 76 '
+        'C95 82, 108 73, 107 59 '
+        'C106 44, 95 31, 81 31 '
+        'L85 116" '
+        'fill="none" stroke="#111827" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />'
+    )
+    svg_parts.append('<circle cx="77" cy="96" r="5" fill="#111827" />')
 
     for idx, pos in enumerate(positions):
         x = note_x_positions[idx]
@@ -51,6 +83,7 @@ def render_staff(positions):
 
 
 current = questions[st.session_state.index]
+expected_answer = [position_to_note(pos) for pos in current["positions"]]
 
 st.subheader(current["label"])
 st.write(f"힌트: {current['hint']}")
@@ -77,17 +110,27 @@ if st.session_state.played_notes:
 else:
     st.info("아직 연주한 음이 없습니다. 버튼을 눌러 보세요.")
 
+edit_col1, edit_col2 = st.columns(2)
+with edit_col1:
+    if st.button("↩️ 마지막 음 지우기", use_container_width=True):
+        remove_last_note()
+        st.rerun()
+with edit_col2:
+    if st.button("🧹 전체 지우기", use_container_width=True):
+        clear_played_notes()
+        st.rerun()
+
 st.write("")
 col1, col2 = st.columns([1, 1])
 with col1:
     if st.button("연주 완료"):
         if len(st.session_state.played_notes) != 4:
             st.warning("4개의 음을 모두 선택해 주세요.")
-        elif st.session_state.played_notes == current["answer"]:
+        elif st.session_state.played_notes == expected_answer:
             st.success("정답입니다! 악보와 똑같이 연주했어요.")
             st.session_state.feedback = "correct"
         else:
-            st.info("아쉽습니다. 다시 한 번 생각해 보세요.")
+            st.info("아쉽습니다. 아래에서 음을 지우고 다시 입력해 보세요.")
             st.session_state.feedback = "wrong"
 
 with col2:
@@ -97,5 +140,5 @@ with col2:
 
 if st.session_state.feedback == "wrong":
     st.write("정답 악보")
-    st.write(" → ".join(current["answer"]))
+    st.write(" → ".join(expected_answer))
 
