@@ -97,14 +97,14 @@ st.write("악보를 보고 계이름을 읽어보세요. 필요하면 문제 악
 
 left, right = st.columns([3, 1])
 with left:
-    n_measures = st.slider("문제 길이(마디 수)", 1, 4, 2, key="pitch_measures")
+    n_measures = st.slider("마디수를 1마디에서 4마디로 설정할 수 있습니다.", 1, 4, 2, key="pitch_measures")
 with right:
     st.metric("점수", f"{st.session_state.pitch_score} / {st.session_state.pitch_tries}")
 
 notes = st.session_state.pitch_notes
 
-st.subheader("문제 악보")
-fig, _ = render_score(notes, clef="treble", time_sig=(4, 4), title="계이름 문제")
+st.write("다음 악보를 읽고, 아래 계이름 입력란에 계이름을 입력하세요.")
+fig, _ = render_score(notes, clef="treble", time_sig=(4, 4), title="")
 st.pyplot(fig)
 st.caption("나온 음표 길이: " + " · ".join(DUR_KOR[n["duration"]] for n in notes))
 
@@ -112,7 +112,7 @@ play_col, tempo_col = st.columns([1, 2])
 with tempo_col:
     tempo = st.slider("재생 속도(BPM)", 50, 160, 90, 5, key="pitch_tempo")
 with play_col:
-    if st.button("▶ 문제 악보 재생", use_container_width=True):
+    if st.button("악보 재생", use_container_width=True):
         audio_bytes = synthesize_score(notes, tempo=tempo)
         st.audio(audio_bytes, format="audio/wav", autoplay=True)
 

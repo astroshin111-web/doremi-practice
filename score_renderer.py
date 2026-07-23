@@ -111,7 +111,8 @@ def draw_treble_clef(ax, center_x, unit=0.5):
     학습용 높은음자리표
     """
     base_y = 1 * unit
-    scale = unit / 0.5
+    # 악보 대비 큰 편이라 높은음자리표만 절반 크기로 축소
+    scale = (unit / 0.5) * 0.5
 
     def P(x, y):
         return [center_x + x * scale, base_y + y * scale]
