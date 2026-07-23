@@ -1,10 +1,31 @@
 import matplotlib
 matplotlib.use("Agg")
 
+from pathlib import Path
+
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib import font_manager
 from matplotlib.lines import Line2D
 from matplotlib.patches import Ellipse, Circle
+
+
+def _configure_korean_font():
+    """fonts 폴더의 Noto Sans KR을 matplotlib 기본 폰트로 등록한다."""
+    fonts_dir = Path(__file__).resolve().parent / "fonts"
+    regular_path = fonts_dir / "NotoSansKR-Regular.ttf"
+    all_noto_fonts = sorted(fonts_dir.glob("NotoSansKR-*.ttf"))
+
+    for font_path in all_noto_fonts:
+        font_manager.fontManager.addfont(str(font_path))
+
+    if regular_path.exists():
+        font_name = font_manager.FontProperties(fname=str(regular_path)).get_name()
+        plt.rcParams["font.family"] = font_name
+        plt.rcParams["axes.unicode_minus"] = False
+
+
+_configure_korean_font()
 
 # =========================
 # 기본 데이터

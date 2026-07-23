@@ -1,4 +1,5 @@
 import streamlit as st
+from score_audio import synthesize_score
 
 st.set_page_config(page_title="연주 게임", page_icon="🎺")
 
@@ -14,6 +15,15 @@ questions = [
 
 # 높은음자리표 기준: 가장 상단 칸(pos=3)이 "미"
 NOTE_SCALE = ["도", "레", "미", "파", "솔", "라", "시"]
+NOTE_TO_PITCH = {
+    "도": "C4",
+    "레": "D4",
+    "미": "E4",
+    "파": "F4",
+    "솔": "G4",
+    "라": "A4",
+    "시": "B4",
+}
 
 
 def position_to_note(pos):
@@ -27,6 +37,9 @@ if "played_notes" not in st.session_state:
 
 if "feedback" not in st.session_state:
     st.session_state.feedback = None
+
+if "last_note_audio" not in st.session_state:
+    st.session_state.last_note_audio = None
 
 
 def reset_round():
@@ -43,6 +56,14 @@ def remove_last_note():
 def clear_played_notes():
     st.session_state.played_notes = []
     st.session_state.feedback = None
+
+
+def build_note_audio(note_name):
+    pitch = NOTE_TO_PITCH[note_name]
+    return synthesize_score(
+        [{"pitch": pitch, "duration": "eighth"}],
+        tempo=220,
+    )
 
 
 def render_staff(positions):
@@ -97,11 +118,15 @@ notes = ["도", "레", "미", "파", "솔", "라", "시"]
 cols = st.columns(4)
 for idx, note in enumerate(notes):
     if cols[idx % 4].button(note, key=f"note_{st.session_state.index}_{note}"):
+        st.session_state.last_note_audio = build_note_audio(note)
         if len(st.session_state.played_notes) < 4:
             st.session_state.played_notes.append(note)
             st.session_state.feedback = None
         else:
             st.warning("4개의 음만 선택할 수 있어요.")
+
+if st.session_state.last_note_audio:
+    st.audio(st.session_state.last_note_audio, format="audio/wav", autoplay=True)
 
 st.write("")
 st.write("지금까지 연주한 음")
