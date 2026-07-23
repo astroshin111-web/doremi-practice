@@ -152,7 +152,8 @@ def draw_bass_clef(ax, center_x, unit=0.5):
     학습용 낮은음자리표
     """
     base_y = 3 * unit
-    scale = unit / 0.5
+    # 기존보다 약 40% 축소
+    scale = (unit / 0.5) * 0.6
 
     def P(x, y):
         return [center_x + x * scale, base_y + y * scale]

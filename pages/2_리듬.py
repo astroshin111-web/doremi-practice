@@ -220,6 +220,42 @@ def detect_onsets(audio: np.ndarray, sr: int):
     return peak_times
 
 
+def _normalize_intervals(intervals: np.ndarray):
+    total = float(np.sum(intervals))
+    if total <= 1e-9:
+        return None
+    return intervals / total
+
+
+def _ratio_text(intervals: np.ndarray):
+    min_val = float(np.min(intervals))
+    if min_val <= 1e-9:
+        return "-"
+    values = np.round(intervals / min_val, 2)
+    return ":".join(f"{v:g}" for v in values)
+
+
+def _best_onset_window(onsets: np.ndarray, expected_count: int, expected_norm: np.ndarray):
+    """여러 타격이 잡힌 경우, 기대 비율과 가장 가까운 연속 구간을 선택한다."""
+    if len(onsets) == expected_count:
+        return onsets
+
+    best = None
+    best_mae = float("inf")
+    for start in range(0, len(onsets) - expected_count + 1):
+        window = onsets[start:start + expected_count]
+        intervals = np.diff(window)
+        norm = _normalize_intervals(intervals)
+        if norm is None:
+            continue
+        mae = float(np.mean(np.abs(norm - expected_norm)))
+        if mae < best_mae:
+            best_mae = mae
+            best = window
+
+    return best if best is not None else onsets[:expected_count]
+
+
 def judge_rhythm_clap(wav_bytes: bytes, expected_beats: list[float]):
     audio, sr = decode_wav_to_mono_float(wav_bytes)
     onsets = detect_onsets(audio, sr)
@@ -231,27 +267,38 @@ def judge_rhythm_clap(wav_bytes: bytes, expected_beats: list[float]):
     if len(onsets) < expected_count:
         return False, f"박수 개수가 부족해요. 감지된 타격 {len(onsets)}회 / 예상 {expected_count}회"
 
+    expected_intervals = np.array(expected_beats[:-1], dtype=np.float32)
+    expected_norm = _normalize_intervals(expected_intervals)
+    if expected_norm is None:
+        return False, "문제 데이터 오류: 비교할 리듬 간격이 없습니다."
+
     if len(onsets) > expected_count:
-        # 가장 강한 피크 선택 대신 시간축 균등성이 높은 구간을 찾기 위해 앞에서부터 사용
-        onsets = onsets[:expected_count]
+        onsets = _best_onset_window(onsets, expected_count, expected_norm)
 
     observed_intervals = np.diff(onsets)
-    expected_intervals = np.array(expected_beats[:-1], dtype=np.float32)
-
-    obs_sum = float(np.sum(observed_intervals))
-    exp_sum = float(np.sum(expected_intervals))
-
-    if obs_sum <= 1e-6 or exp_sum <= 1e-6:
+    observed_norm = _normalize_intervals(observed_intervals)
+    if observed_norm is None:
         return False, "리듬을 판정하기 어렵습니다. 다시 녹음해 주세요."
 
-    obs_norm = observed_intervals / obs_sum
-    exp_norm = expected_intervals / exp_sum
-    mae = float(np.mean(np.abs(obs_norm - exp_norm)))
+    mae = float(np.mean(np.abs(observed_norm - expected_norm)))
+    max_err = float(np.max(np.abs(observed_norm - expected_norm)))
 
-    is_correct = mae <= 0.18
+    expected_ratio = _ratio_text(expected_intervals)
+    observed_ratio = _ratio_text(observed_intervals)
+
+    # 평균 오차 + 최대 오차를 함께 보아 박자 구조를 더 엄격히 본다.
+    is_correct = mae <= 0.13 and max_err <= 0.22
     if is_correct:
-        return True, f"정답입니다! (리듬 오차 {mae:.3f})"
-    return False, f"오답입니다. 리듬 간격이 달라요. (리듬 오차 {mae:.3f})"
+        return True, (
+            "정답입니다! "
+            f"기대 비율 {expected_ratio}, 연주 비율 {observed_ratio} "
+            f"(평균 오차 {mae:.3f})"
+        )
+    return False, (
+        "오답입니다. 리듬 간격 비율이 달라요. "
+        f"기대 비율 {expected_ratio}, 연주 비율 {observed_ratio} "
+        f"(평균 오차 {mae:.3f})"
+    )
 
 
 if "rhythm_level" not in st.session_state:
