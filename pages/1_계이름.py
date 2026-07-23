@@ -48,6 +48,21 @@ def make_question(n_measures=2):
     return notes
 
 
+def next_question(n_measures):
+    """다음 문제를 만들고 입력 상태를 함께 초기화한다."""
+    previous = st.session_state.get("pitch_notes")
+    notes = make_question(n_measures)
+
+    if previous is not None:
+        for _ in range(5):
+            if notes != previous:
+                break
+            notes = make_question(n_measures)
+
+    st.session_state.pitch_notes = notes
+    st.session_state.pitch_answer = ""
+
+
 def parse_answer(text):
     """도레미 / C D E / cde 형식을 모두 알파벳 음이름 리스트로 바꾼다."""
     text = text.strip()
@@ -122,10 +137,11 @@ with c1:
             st.write("정답:", " - ".join(correct_kor), f"({' '.join(correct_letters)})")
 
 with c2:
-    if st.button("➡️ 다음 문제"):
-        st.session_state.pitch_notes = make_question(n_measures)
-        st.session_state.pitch_answer = ""
-        st.rerun()
+    st.button(
+        "➡️ 다음 문제",
+        on_click=next_question,
+        args=(n_measures,),
+    )
 
 st.divider()
 if st.button("← 메인으로 돌아가기"):
